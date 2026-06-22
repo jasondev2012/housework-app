@@ -33,14 +33,19 @@ export function calculatePenaltiesByUser(
   return scores
 }
 
+
 export function formatDate(dateString: string): string {
-  const date = new Date(dateString)
+  const [year, month, day] = dateString.split('-').map(Number)
+
+  const date = new Date(year, month - 1, day)
+
   return date.toLocaleDateString('es-ES', {
     day: 'numeric',
     month: 'short',
     year: 'numeric',
   })
 }
+
 
 export function toInputDate(date: Date = new Date()): string {
   return date.toISOString().split('T')[0]
