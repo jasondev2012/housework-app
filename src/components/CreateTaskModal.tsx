@@ -132,8 +132,8 @@ export function CreateTaskModal({
                     className="input-field"
                   >
                     {users.map((user) => (
-                      <option key={user.uid || user.email} value={user.uid}>
-                        {user.uid === currentUserId ? 'Yo' : user.name}
+                      <option key={user.id || user.email} value={user.id}>
+                        {user.id === currentUserId ? 'Yo' : user.name}
                       </option>
                     ))}
                   </select>

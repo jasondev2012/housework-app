@@ -59,14 +59,14 @@ export function useTasks(currentUserId: string | undefined) {
 
   // ✅ PENALIDADES
   const penaltyScores = useMemo((): PenaltyScore[] => {
-    const userIds = users.map((user) => user.uid)
+    const userIds = users.map((user) => user.id)
     const scores = calculatePenaltiesByUser(tasks, userIds)
 
     return users.map((user) => ({
-      uid: user.uid,
+      id: user.id,
       name: user.name,
       photoURL: user.photoURL,
-      points: scores[user.uid] ?? 0,
+      points: scores[user.id] ?? 0,
     }))
   }, [tasks, users])
 

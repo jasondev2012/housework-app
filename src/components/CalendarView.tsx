@@ -70,7 +70,7 @@ export function CalendarView({ tasks, users, currentUserId }: CalendarViewProps)
               <div className="mt-1 flex flex-col gap-0.5">
                 {dayTasks.slice(0, 2).map((task) => {
                   const status = getTaskStatus(task)
-                  const assignee = users.find((u) => u.uid === task.assignedTo)
+                  const assignee = users.find((u) => u.id === task.assignedTo)
                   return (
                     <div
                       key={task.id}

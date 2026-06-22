@@ -98,7 +98,7 @@ export function Dashboard({ user, onLogout }: DashboardProps) {
         open={modalOpen}
         onClose={handleCloseModal}
         onSubmit={handleSubmit}
-        users={users.length > 0 ? users : [{ uid: user.id, name: user.name ?? 'Yo', email: user.email ?? '', photoURL: user.photoURL }]}
+        users={users.length > 0 ? users : [{ id: user.id, name: user.name ?? 'Yo', email: user.email ?? '', photoURL: user.photoURL }]}
         currentUserId={user.id}
         editingTask={editingTask}
       />

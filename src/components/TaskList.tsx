@@ -104,7 +104,7 @@ function TaskSection({
           <TaskCard
             key={task.id}
             task={task}
-            assignee={users.find((u) => u.uid === task.assignedTo)}
+            assignee={users.find((u) => u.id === task.assignedTo)}
             isMine={task.assignedTo === currentUserId}
             index={index}
             onComplete={onComplete}

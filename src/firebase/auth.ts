@@ -38,7 +38,7 @@ export const subscribeAuth = (callback: any) => {
     }
 
     callback({
-      id: firebaseUser.uid,
+      id: firebaseUser.id,
       email: firebaseUser.email ?? "",
       name: firebaseUser.displayName ?? "",
       photoURL: firebaseUser.photoURL ?? "",

@@ -1,9 +1,9 @@
-import { collection, onSnapshot, setDoc, doc, type Unsubscribe } from 'firebase/firestore'
+import { collection, onSnapshot, setDoc, doc } from 'firebase/firestore'
 import { db } from './firestore'
 import type { AppUser } from '../types'
 
 export interface StoredUser {
-  uid: string
+  id: string
   name: string
   email: string
   photoURL: string | null
@@ -18,7 +18,7 @@ export async function upsertUser(user: AppUser): Promise<void> {
   await setDoc(
     doc(db, 'users', user.id), // ✅ FIX CLAVE
       {
-      uid: user.id, // ✅ mantienes uid en DB si quieres
+        id: user.id, // ✅ mantienes uid en DB si quieres
       name: user.name ?? user.email.split('@')[0],
       email: user.email,
       photoURL: user.photoURL ?? null,
