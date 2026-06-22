@@ -20,7 +20,10 @@ jobs:
         with:
           node-version: 20
 
-      - run: npm ci && npm run build
+      
+      - run: npm install
+      - run: npm run build
+
 
       - uses: FirebaseExtended/action-hosting-deploy@v0
         with:
