@@ -8,7 +8,7 @@ interface DashboardHeaderProps {
 }
 
 export function DashboardHeader({ user, penaltyScores, onLogout }: DashboardHeaderProps) {
-  const myPenalties = penaltyScores.find((score) => score.uid === user.id)?.points ?? 0
+  const myPenalties = penaltyScores.find((score) => score.id === user.id)?.points ?? 0
 
   return (
     <header className="sticky top-0 z-30 border-b border-neutral-200/60 bg-white/70 backdrop-blur-md">

@@ -30,7 +30,7 @@ export interface TaskFormData {
 }
 
 export interface PenaltyScore {
-  uid: string
+  id: string
   name: string
   photoURL: string | null
   points: number

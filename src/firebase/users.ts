@@ -17,8 +17,8 @@ export async function upsertUser(user: AppUser): Promise<void> {
 
   await setDoc(
     doc(db, 'users', user.id), // ✅ FIX CLAVE
-      {
-        id: user.id, // ✅ mantienes uid en DB si quieres
+    {
+      id: user.id, // ✅ mantienes uid en DB si quieres
       name: user.name ?? user.email.split('@')[0],
       email: user.email,
       photoURL: user.photoURL ?? null,

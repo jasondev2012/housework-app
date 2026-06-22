@@ -21,12 +21,12 @@ export function Scoreboard({ scores, currentUserId }: ScoreboardProps) {
         <div className="flex flex-wrap gap-3">
           {sorted.map((score, index) => (
             <motion.div
-              key={score.uid}
+              key={score.id}
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: index * 0.1 }}
               className={`flex items-center gap-2 rounded-xl border px-3 py-2 ${
-                score.uid === currentUserId
+                score.id === currentUserId
                   ? 'border-indigo-200 bg-indigo-50'
                   : 'border-neutral-200 bg-white'
               }`}
@@ -53,7 +53,7 @@ export function Scoreboard({ scores, currentUserId }: ScoreboardProps) {
         </div>
         {leader && leader.points > 0 && (
           <p className="text-xs text-neutral-500">
-            {leader.uid === currentUserId ? 'Tú' : leader.name} lleva más penalidades esta semana
+            {leader.id === currentUserId ? 'Tú' : leader.name} lleva más penalidades esta semana
           </p>
         )}
       </div>

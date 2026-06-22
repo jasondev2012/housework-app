@@ -20,8 +20,8 @@ export function calculatePenaltiesByUser(
   now = new Date(),
 ): Record<string, number> {
   const scores: Record<string, number> = {}
-  userIds.forEach((uid) => {
-    scores[uid] = 0
+  userIds.forEach((id) => {
+    scores[id] = 0
   })
 
   tasks.forEach((task) => {
