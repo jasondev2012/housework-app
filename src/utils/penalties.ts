@@ -1,13 +1,19 @@
 import type { Task, TaskStatus } from '../types'
 
+
 export function getTaskStatus(task: Task, now = new Date()): TaskStatus {
   if (task.completed) return 'completed'
 
-  const due = new Date(task.dueDate)
+  const due = parseLocalDate(task.dueDate)
   due.setHours(23, 59, 59, 999)
 
   if (now > due) return 'overdue'
   return 'pending'
+}
+
+function parseLocalDate(dateString: string) {
+  const [year, month, day] = dateString.split('-').map(Number)
+  return new Date(year, month - 1, day)
 }
 
 export function isTaskOverdue(task: Task, now = new Date()): boolean {
