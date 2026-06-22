@@ -42,11 +42,10 @@ export function TaskCard({
         <button
           type="button"
           onClick={() => onComplete(task.id, !task.completed)}
-          className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-md border-2 transition-all ${
-            task.completed
+          className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-md border-2 transition-all ${task.completed
               ? 'border-green-500 bg-green-500 text-white'
               : 'border-neutral-300 hover:border-indigo-400'
-          }`}
+            }`}
           aria-label={task.completed ? 'Marcar pendiente' : 'Marcar completada'}
         >
           {task.completed && (
@@ -59,9 +58,8 @@ export function TaskCard({
         <div className="min-w-0 flex-1">
           <div className="flex items-start justify-between gap-2">
             <h3
-              className={`font-medium text-neutral-900 ${
-                task.completed ? 'line-through text-neutral-400' : ''
-              }`}
+              className={`font-medium text-neutral-900 ${task.completed ? 'line-through text-neutral-400' : ''
+                }`}
             >
               {task.title}
             </h3>
@@ -92,7 +90,7 @@ export function TaskCard({
         </div>
       </div>
 
-      <div className="mt-3 flex justify-end gap-2 opacity-0 transition-opacity group-hover:opacity-100 sm:opacity-100">
+      <div className="mt-3 flex justify-end gap-2 opacity-100">
         <button
           type="button"
           onClick={() => onEdit(task)}
