@@ -26,7 +26,6 @@ export function AdminPanel({
   currentUserId,
   penaltyHistory,
   penaltyScores,
-  achievements,
   onRestoreTask,
   onCompensatePenalty,
   isLoading = false,

@@ -29,7 +29,7 @@ export function DeletedTasksList({
 
   return (
     <div className="space-y-3">
-      {deletedTasks.map((task, index) => {
+      {deletedTasks.map((task) => {
         const assignee = users.find((u) => u.id === task.assignedTo)
 
         return (
