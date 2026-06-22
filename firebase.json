@@ -1,5 +1,6 @@
 {
   "hosting": {
+    "site": "cuadros-housework-app",
     "public": "dist",
     "ignore": [
       "firebase.json",
