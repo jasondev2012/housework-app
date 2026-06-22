@@ -4,6 +4,8 @@ import { DashboardHeader } from '../components/DashboardHeader'
 import { FloatingActionButton } from '../components/FloatingActionButton'
 import { TaskFilterTabs } from '../components/TaskFilter'
 import { TaskList } from '../components/TaskList'
+import { AdminPanel } from '../components/AdminPanel'
+import { ConfirmDeleteModal } from '../components/ConfirmDeleteModal'
 import { useTasks } from '../hooks/useTasks'
 import type { AppUser, Task, TaskFilter, TaskFormData } from '../types'
 import { CalendarView } from '../components/CalendarView'
@@ -22,21 +24,28 @@ export function Dashboard({ user, onLogout }: DashboardProps) {
     filter,
     setFilter,
     penaltyScores,
+    penaltyHistory,
+    achievements,
     createTask,
     editTask,
     removeTask,
     completeTask,
+    restoreDeletedTask,
+    compensatePenalty,
   } = useTasks(user.id)
 
   const [modalOpen, setModalOpen] = useState(false)
   const [editingTask, setEditingTask] = useState<Task | null>(null)
   const [view, setView] = useState<'list' | 'calendar'>('list')
+  const [showAdmin, setShowAdmin] = useState(false)
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
+  const [taskToDelete, setTaskToDelete] = useState<string | null>(null)
 
   const counts = useMemo(
     (): Record<TaskFilter, number> => ({
-      all: allTasks.length,
-      mine: allTasks.filter((t) => t.assignedTo === user.id).length,
-      completed: allTasks.filter((t) => t.completed).length,
+      all: allTasks.filter(t => !t.deleted).length,
+      mine: allTasks.filter((t) => t.assignedTo === user.id && !t.deleted).length,
+      completed: allTasks.filter((t) => t.completed && !t.deleted).length,
     }),
     [allTasks, user.id],
   )
@@ -60,6 +69,19 @@ export function Dashboard({ user, onLogout }: DashboardProps) {
     setEditingTask(null)
   }
 
+  const handleDeleteClick = (taskId: string) => {
+    setTaskToDelete(taskId)
+    setDeleteConfirmOpen(true)
+  }
+
+  const handleConfirmDelete = async () => {
+    if (taskToDelete) {
+      await removeTask(taskToDelete)
+      setDeleteConfirmOpen(false)
+      setTaskToDelete(null)
+    }
+  }
+
   return (
     <div className="min-h-screen pb-24">
       <DashboardHeader user={user} penaltyScores={penaltyScores} onLogout={onLogout} />
@@ -67,28 +89,59 @@ export function Dashboard({ user, onLogout }: DashboardProps) {
       <main className="mx-auto max-w-3xl px-4 py-6 sm:px-6">
         <div className="mb-6 flex items-center justify-between gap-4">
           <div>
-            <h1 className="text-xl font-bold tracking-tight text-neutral-900">Tareas</h1>
-            <p className="text-sm text-neutral-500">Organiza el hogar entre los dos</p>
+            <h1 className="text-xl font-bold tracking-tight text-neutral-900">
+              {showAdmin ? '⚙️ Panel de Control' : '📋 Tareas'}
+            </h1>
+            <p className="text-sm text-neutral-500">
+              {showAdmin
+                ? 'Gestiona penalidades, historial y logros'
+                : 'Organiza el hogar entre los dos'}
+            </p>
           </div>
-          <ViewToggle view={view} onChange={setView} />
+          <div className="flex items-center gap-2">
+            {!showAdmin && <ViewToggle view={view} onChange={setView} />}
+            <button
+              type="button"
+              onClick={() => setShowAdmin(!showAdmin)}
+              className="rounded-lg border border-neutral-200 bg-white px-3 py-2 text-xs font-medium text-neutral-600 hover:bg-neutral-50"
+            >
+              {showAdmin ? '← Tareas' : 'Estadísticas ⚙️'}
+            </button>
+          </div>
         </div>
 
-        <div className="mb-6">
-          <TaskFilterTabs active={filter} onChange={setFilter} counts={counts} />
-        </div>
-
-        {view === 'list' ? (
-          <TaskList
-            tasks={tasks}
+        {showAdmin ? (
+          <AdminPanel
+            allTasks={allTasks}
             users={users}
             currentUserId={user.id}
-            loading={loading}
-            onComplete={completeTask}
-            onEdit={handleEdit}
-            onDelete={removeTask}
+            penaltyHistory={penaltyHistory}
+            penaltyScores={penaltyScores}
+            achievements={achievements}
+            onRestoreTask={restoreDeletedTask}
+            onCompensatePenalty={compensatePenalty}
+            isLoading={loading}
           />
         ) : (
-          <CalendarView tasks={allTasks} users={users} currentUserId={user.id} />
+          <>
+            <div className="mb-6">
+              <TaskFilterTabs active={filter} onChange={setFilter} counts={counts} />
+            </div>
+
+            {view === 'list' ? (
+              <TaskList
+                tasks={tasks}
+                users={users}
+                currentUserId={user.id}
+                loading={loading}
+                onComplete={completeTask}
+                onEdit={handleEdit}
+                onDelete={handleDeleteClick}
+              />
+            ) : (
+              <CalendarView tasks={allTasks.filter(t => !t.deleted)} users={users} currentUserId={user.id} />
+            )}
+          </>
         )}
       </main>
 
@@ -101,6 +154,18 @@ export function Dashboard({ user, onLogout }: DashboardProps) {
         users={users.length > 0 ? users : [{ id: user.id, name: user.name ?? 'Yo', email: user.email ?? '', photoURL: user.photoURL }]}
         currentUserId={user.id}
         editingTask={editingTask}
+      />
+
+      <ConfirmDeleteModal
+        open={deleteConfirmOpen}
+        title="Eliminar tarea"
+        description="¿Estás seguro de que deseas eliminar esta tarea? Puedes restaurarla desde la papelera."
+        onConfirm={handleConfirmDelete}
+        onCancel={() => {
+          setDeleteConfirmOpen(false)
+          setTaskToDelete(null)
+        }}
+        isLoading={loading}
       />
     </div>
   )

@@ -5,16 +5,20 @@ import {
   subscribeTasks,
   toggleTaskComplete,
   updateTask,
+  restoreTask,
+  addPenaltyHistory,
+  subscribePenaltyHistory,
 } from '../firebase/firestore'
 import { subscribeUsers, type StoredUser } from '../firebase/users'
-import { calculatePenaltiesByUser } from '../utils/penalties'
-import type { PenaltyScore, Task, TaskFilter, TaskFormData } from '../types'
+import { calculatePenaltiesByUser, isTaskOverdue, calculateAchievements } from '../utils/penalties'
+import type { PenaltyScore, Task, TaskFilter, TaskFormData, PenaltyHistoryEntry, Achievement } from '../types'
 
 export function useTasks(currentUserId: string | undefined) {
   const [tasks, setTasks] = useState<Task[]>([])
   const [users, setUsers] = useState<StoredUser[]>([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<TaskFilter>('all')
+  const [penaltyHistory, setPenaltyHistory] = useState<PenaltyHistoryEntry[]>([])
 
   // ✅ USERS (siempre cargan, no dependen del usuario)
   useEffect(() => {
@@ -43,24 +47,38 @@ export function useTasks(currentUserId: string | undefined) {
     return unsubscribeTasks
   }, [currentUserId])
 
+  // ✅ PENALTY HISTORY
+  useEffect(() => {
+    if (!currentUserId) {
+      setPenaltyHistory([])
+      return
+    }
+
+    const unsubscribeHistory = subscribePenaltyHistory(currentUserId, (history) => {
+      setPenaltyHistory(history)
+    })
+
+    return unsubscribeHistory
+  }, [currentUserId])
+
   // ✅ FILTROS
   const filteredTasks = useMemo(() => {
-    if (!currentUserId) return tasks
+    if (!currentUserId) return tasks.filter(t => !t.deleted)
 
     switch (filter) {
       case 'mine':
-        return tasks.filter((task) => task.assignedTo === currentUserId)
+        return tasks.filter((task) => task.assignedTo === currentUserId && !task.deleted)
       case 'completed':
-        return tasks.filter((task) => task.completed)
+        return tasks.filter((task) => task.completed && !task.deleted)
       default:
-        return tasks
+        return tasks.filter(t => !t.deleted)
     }
   }, [tasks, filter, currentUserId])
 
   // ✅ PENALIDADES
   const penaltyScores = useMemo((): PenaltyScore[] => {
     const userIds = users.map((user) => user.id)
-    const scores = calculatePenaltiesByUser(tasks, userIds)
+    const scores = calculatePenaltiesByUser(tasks, userIds, penaltyHistory)
 
     return users.map((user) => ({
       id: user.id,
@@ -68,7 +86,13 @@ export function useTasks(currentUserId: string | undefined) {
       photoURL: user.photoURL,
       points: scores[user.id] ?? 0,
     }))
-  }, [tasks, users])
+  }, [tasks, users, penaltyHistory])
+
+  // ✅ ACHIEVEMENTS
+  const achievements = useMemo((): Achievement[] => {
+    if (!currentUserId) return []
+    return calculateAchievements(tasks, penaltyHistory, currentUserId)
+  }, [tasks, penaltyHistory, currentUserId])
 
   // ✅ ACCIONES
 
@@ -104,8 +128,48 @@ export function useTasks(currentUserId: string | undefined) {
   const completeTask = async (id: string, completed: boolean) => {
     try {
       await toggleTaskComplete(id, completed)
+      
+      // Agregar al historial si se marca como no completada una tarea atrasada con penalidad
+      const task = tasks.find(t => t.id === id)
+      if (task && !completed && isTaskOverdue(task) && task.penaltyPoints > 0) {
+        await addPenaltyHistory({
+          userId: task.assignedTo,
+          reason: 'overdue',
+          points: task.penaltyPoints,
+          date: new Date().toISOString().split('T')[0],
+          description: `Penalidad por tarea atrasada: "${task.title}"`,
+          taskId: id,
+        })
+      }
     } catch (error) {
       console.error("Error completando tarea:", error)
+    }
+  }
+
+  const restoreDeletedTask = async (id: string) => {
+    try {
+      await restoreTask(id)
+    } catch (error) {
+      console.error("Error restaurando tarea:", error)
+    }
+  }
+
+  const compensatePenalty = async (
+    userId: string,
+    pointsToReduce: number,
+    amountPaid: number,
+  ) => {
+    try {
+      await addPenaltyHistory({
+        userId,
+        reason: 'compensation',
+        points: pointsToReduce,
+        date: new Date().toISOString().split('T')[0],
+        description: `Compensación de penalidades pagadas`,
+        amountPaid,
+      })
+    } catch (error) {
+      console.error("Error compensando penalidades:", error)
     }
   }
 
@@ -117,9 +181,13 @@ export function useTasks(currentUserId: string | undefined) {
     filter,
     setFilter,
     penaltyScores,
+    penaltyHistory,
+    achievements,
     createTask,
     editTask,
     removeTask,
     completeTask,
+    restoreDeletedTask,
+    compensatePenalty,
   }
 }
